@@ -101,7 +101,7 @@ base_template = "adk_live"
 agent_directory = "app"
 
 # Generation context
-generated_at = "2026-01-21T10:00:52.397693+00:00"
+generated_at = "2026-01-23T11:40:12.065452+00:00"
 asp_version = "0.31.5"
 
 [tool.agent-starter-pack.create_params]
