@@ -54,4 +54,4 @@ root_agent = Agent(
     tools=[get_weather],
 )
 
-app = App(root_agent=root_agent, name="app")
+app = App(root_agent=root_agent, name="agents")
