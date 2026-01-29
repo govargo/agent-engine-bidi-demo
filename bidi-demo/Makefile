@@ -95,7 +95,8 @@ deploy:
 		--source-packages=./app \
 		--entrypoint-module=app.agent_engine_app \
 		--entrypoint-object=agent_engine \
-		--requirements-file=app/app_utils/.requirements.txt
+		--requirements-file=app/app_utils/.requirements.txt \
+		$(ARGS)
 
 # Alias for 'make deploy' for backward compatibility
 backend: deploy
