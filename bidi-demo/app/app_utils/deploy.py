@@ -198,6 +198,26 @@ def print_deployment_success(
     default=1,
     help="Number of worker processes (default: 1)",
 )
+@click.option(
+    "--network-attachment",
+    default=None,
+    help="Network attachment for PSC interface config",
+)
+@click.option(
+    "--dns-peering-domain",
+    default=None,
+    help="DNS peering domain for PSC interface config",
+)
+@click.option(
+    "--dns-peering-target-project",
+    default=None,
+    help="DNS peering target project for PSC interface config",
+)
+@click.option(
+    "--dns-peering-target-network",
+    default=None,
+    help="DNS peering target network for PSC interface config",
+)
 def deploy_agent_engine_app(
     project: str | None,
     location: str,
@@ -216,6 +236,10 @@ def deploy_agent_engine_app(
     memory: str,
     container_concurrency: int,
     num_workers: int,
+    network_attachment: str | None,
+    dns_peering_domain: str | None,
+    dns_peering_target_project: str | None,
+    dns_peering_target_network: str | None,
 ) -> AgentEngine:
     """Deploy the agent engine app to Vertex AI."""
 
@@ -237,6 +261,25 @@ def deploy_agent_engine_app(
     if not project:
         _, project = google.auth.default()
 
+    # Construct psc_interface_config
+    psc_interface_config = None
+    if network_attachment:
+        psc_interface_config = {
+            "network_attachment": network_attachment,
+        }
+        if (
+            dns_peering_domain
+            and dns_peering_target_project
+            and dns_peering_target_network
+        ):
+            psc_interface_config["dns_peering_configs"] = [
+                {
+                    "domain": dns_peering_domain,
+                    "target_project": dns_peering_target_project,
+                    "target_network": dns_peering_target_network,
+                }
+            ]
+
     print("""
     ╔═══════════════════════════════════════════════════════════╗
     ║                                                           ║
@@ -257,12 +300,15 @@ def deploy_agent_engine_app(
     click.echo(f"  Container Concurrency: {container_concurrency}")
     if service_account:
         click.echo(f"  Service Account: {service_account}")
+    if network_attachment:
+        click.echo(f"  Network Attachment: {network_attachment}")
     if env_vars:
         click.echo("\n🌍 Environment Variables:")
         for key, value in sorted(env_vars.items()):
             click.echo(f"  {key}: {value}")
 
     source_packages_list = list(source_packages)
+    source_packages_list.append(<WAV_FILE_NAME>)
 
     # Initialize vertexai client
     client = vertexai.Client(
@@ -302,6 +348,7 @@ def deploy_agent_engine_app(
         gcs_dir_name=display_name,
         agent_server_mode=AgentServerMode.EXPERIMENTAL,  # Enable bidi streaming
         resource_limits={"cpu": cpu, "memory": memory},
+        psc_interface_config=psc_interface_config,
     )
 
     agent_config = {

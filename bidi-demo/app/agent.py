@@ -12,9 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import base64
 
 from google.adk.agents import Agent
 from google.adk.apps import App
+from google.adk.agents.run_config import RunConfig
 from google.adk.models import Gemini
 from google.genai import types
 
@@ -44,14 +46,39 @@ def get_weather(query: str) -> str:
     return "It's 90 degrees and sunny."
 
 
-root_agent = Agent(
+class RootAgent(Agent):
+    pass
+
+
+root_agent = RootAgent(
     name="root_agent",
     model=Gemini(
         model="gemini-live-2.5-flash-native-audio",
         retry_options=types.HttpRetryOptions(attempts=3),
+        generate_content_config=types.GenerateContentConfig(
+            temperature=0.7,
+        ),
     ),
     instruction="You are a helpful AI assistant designed to provide accurate and useful information.",
     tools=[get_weather],
 )
 
 app = App(root_agent=root_agent, name="app")
+
+with open(<WAV_FILE_NAME>, "rb") as f:
+    wav_data = f.read()
+
+run_config = RunConfig(
+    response_modalities=["AUDIO"],
+    speech_config=types.SpeechConfig(
+        voice_config=types.VoiceConfig(
+            # prebuilt_voice_config=types.PrebuiltVoiceConfig(
+            #     voice_name="Puck",
+            # ),
+            replicated_voice_config=types.ReplicatedVoiceConfig(
+                mime_type="audio/pcm;rate=24000",
+                voice_sample_audio=base64.b64encode(wav_data).decode('utf-8'),
+            )
+        )
+    ),
+)
