@@ -45,7 +45,6 @@ class ConfigInjectingQueue(asyncio.Queue):
         if not self._first_item_processed:
             self._first_item_processed = True
             if isinstance(item, dict):
-                print(f"DEBUG: Injecting run_config: {self._config}")
                 item["run_config"] = self._config.model_dump(mode="json")
         return item
 
@@ -56,7 +55,6 @@ class AgentEngineApp(AdkApp):
         # Patch app name if running in Agent Engine to satisfy VertexAiSessionService
         agent_engine_id = os.environ.get("GOOGLE_CLOUD_AGENT_ENGINE_ID")
         if agent_engine_id and self._tmpl_attrs.get("app"):
-            print(f"DEBUG: Patching app name to {agent_engine_id}")
             self._tmpl_attrs["app"].name = agent_engine_id
 
         vertexai.init()
